@@ -11,7 +11,9 @@ import com.example.expensemanager.data.repository.CategoryRepository
 import com.example.expensemanager.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.time.LocalDate
+import java.util.Locale
 
 /**
  * ViewModel cho Add Transaction Screen
@@ -60,8 +62,23 @@ class AddTransactionViewModel(application: Application) : AndroidViewModel(appli
      * Thay đổi số tiền
      */
     fun onAmountChanged(amount: String) {
-        val amountLong = amount.toLongOrNull() ?: 0L
-        _uiState.update { it.copy(amount = amountLong, amountText = amount) }
+        // Chỉ giữ lại ký tự số
+        val digitsOnly = amount.filter { it.isDigit() }
+
+        if (digitsOnly.isEmpty()) {
+            _uiState.update { it.copy(amount = 0L, amountText = "") }
+            return
+        }
+
+        val amountLong = digitsOnly.toLongOrNull() ?: 0L
+
+        // Định dạng có dấu chấm phân cách hàng nghìn (theo vi-VN)
+        val formatter = NumberFormat.getNumberInstance(Locale.forLanguageTag("vi-VN")).apply {
+            maximumFractionDigits = 0
+        }
+        val formatted = formatter.format(amountLong)
+
+        _uiState.update { it.copy(amount = amountLong, amountText = formatted) }
     }
     
     /**

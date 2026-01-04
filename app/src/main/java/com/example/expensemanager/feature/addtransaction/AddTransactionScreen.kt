@@ -44,6 +44,12 @@ fun AddTransactionScreen(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     )
     val uiState by viewModel.uiState.collectAsState()
+    var amountField by remember(uiState.amountText) {
+        mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(
+            uiState.amountText,
+            androidx.compose.ui.text.TextRange(uiState.amountText.length)
+        ))
+    }
     
     Scaffold(
         topBar = {
@@ -95,8 +101,11 @@ fun AddTransactionScreen(
             
             // Amount Input
             OutlinedTextField(
-                value = uiState.amountText,
-                onValueChange = { viewModel.onAmountChanged(it) },
+                value = amountField,
+                onValueChange = { newValue ->
+                    amountField = newValue
+                    viewModel.onAmountChanged(newValue.text)
+                },
                 label = { Text("Số tiền") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 suffix = { Text("đ") },
