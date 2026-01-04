@@ -36,7 +36,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onAddTransactionClick: () -> Unit = {}
+    onAddTransactionClick: () -> Unit = {},
+    onCategoryManagementClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as? android.app.Application 
@@ -49,7 +50,9 @@ fun HomeScreen(
     
     Scaffold(
         topBar = {
-            HomeTopBar()
+            HomeTopBar(
+                onSettingsClick = onCategoryManagementClick
+            )
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -226,7 +229,9 @@ private fun MonthYearSelector(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun HomeTopBar() {
+private fun HomeTopBar(
+    onSettingsClick: () -> Unit = {}
+) {
     TopAppBar(
         title = {
             Text(
@@ -234,6 +239,15 @@ private fun HomeTopBar() {
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
+        },
+        actions = {
+            IconButton(onClick = onSettingsClick) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Quản lý danh mục",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,
