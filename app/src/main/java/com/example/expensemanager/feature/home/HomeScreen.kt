@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -37,7 +38,8 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
   onAddTransactionClick: () -> Unit = {},
-  onCategoryManagementClick: () -> Unit = {}
+  onCategoryManagementClick: () -> Unit = {},
+  onTransactionDetailClick: () -> Unit = {}
 ) {
   val context = LocalContext.current
   val application = context.applicationContext as? android.app.Application
@@ -51,7 +53,8 @@ fun HomeScreen(
   Scaffold(
     topBar = {
       HomeTopBar(
-        onSettingsClick = onCategoryManagementClick
+        onSettingsClick = onCategoryManagementClick,
+        onTransactionDetailClick = onTransactionDetailClick
       )
     },
     floatingActionButton = {
@@ -230,7 +233,8 @@ private fun MonthYearSelector(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
-  onSettingsClick: () -> Unit = {}
+  onSettingsClick: () -> Unit = {},
+  onTransactionDetailClick: () -> Unit = {}
 ) {
   TopAppBar(
     title = {
@@ -241,6 +245,13 @@ private fun HomeTopBar(
       )
     },
     actions = {
+      IconButton(onClick = onTransactionDetailClick) {
+        Icon(
+          imageVector = Icons.Default.List,
+          contentDescription = "Xem chi tiết giao dịch",
+          tint = MaterialTheme.colorScheme.onSurface
+        )
+      }
       IconButton(onClick = onSettingsClick) {
         Icon(
           imageVector = Icons.Default.Settings,

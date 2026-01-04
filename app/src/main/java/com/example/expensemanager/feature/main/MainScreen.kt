@@ -5,8 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +15,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.expensemanager.feature.categorymanagement.CategoryManagementScreen
 import com.example.expensemanager.feature.home.HomeScreen
+import com.example.expensemanager.feature.transactiondetail.TransactionDetailScreen
 
 /**
  * Màn hình chính với Bottom Navigation
@@ -26,7 +27,8 @@ fun MainScreen(
   onTabSelected: (Int) -> Unit,
   onAddTransactionClick: () -> Unit = {},
   onAddCategoryClick: () -> Unit = {},
-  onEditCategoryClick: (Long) -> Unit = {}
+  onEditCategoryClick: (Long) -> Unit = {},
+  onTransactionDetailClick: () -> Unit = {}
 ) {
 
   Scaffold(
@@ -62,48 +64,19 @@ fun MainScreen(
       when (selectedTab) {
         0 -> HomeScreen(
           onAddTransactionClick = onAddTransactionClick,
-          onCategoryManagementClick = { onTabSelected(1) }
+          onCategoryManagementClick = { onTabSelected(1) },
+          onTransactionDetailClick = onTransactionDetailClick
         )
         1 -> CategoryManagementScreen(
           onNavigateBack = { onTabSelected(0) },
           onAddCategoryClick = onAddCategoryClick,
           onEditCategoryClick = onEditCategoryClick
         )
-        2 -> SearchScreen()
+        2 -> TransactionDetailScreen(
+          onNavigateBack = { onTabSelected(0) }
+        )
         3 -> ProfileScreen()
       }
-    }
-  }
-}
-
-/**
- * Màn hình Tìm kiếm (placeholder)
- */
-@Composable
-private fun SearchScreen() {
-  Box(
-    modifier = Modifier.fillMaxSize(),
-    contentAlignment = androidx.compose.ui.Alignment.Center
-  ) {
-    Column(
-      horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      Icon(
-        imageVector = Icons.Default.Search,
-        contentDescription = null,
-        modifier = Modifier.size(64.dp),
-        tint = MaterialTheme.colorScheme.primary
-      )
-      Text(
-        text = "Tìm kiếm giao dịch",
-        style = MaterialTheme.typography.titleLarge
-      )
-      Text(
-        text = "Chức năng đang phát triển",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-      )
     }
   }
 }
@@ -151,6 +124,6 @@ data class BottomNavItem(
 private val bottomNavItems = listOf(
   BottomNavItem("Trang chủ", Icons.Default.Home),
   BottomNavItem("Danh mục", Icons.Default.List),
-  BottomNavItem("Tìm kiếm", Icons.Default.Search),
+  BottomNavItem("Sổ giao dịch", Icons.Default.Menu),
   BottomNavItem("Cá nhân", Icons.Default.Person)
 )

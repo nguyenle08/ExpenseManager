@@ -13,6 +13,7 @@ import androidx.navigation.NavType
 import com.example.expensemanager.feature.addtransaction.AddTransactionScreen
 import com.example.expensemanager.feature.categorymanagement.AddEditCategoryScreen
 import com.example.expensemanager.feature.main.MainScreen
+import com.example.expensemanager.feature.transactiondetail.TransactionDetailScreen
 
 /**
  * Navigation routes
@@ -21,6 +22,7 @@ object Routes {
   const val MAIN = "main"
   const val ADD_TRANSACTION = "add_transaction"
   const val ADD_EDIT_CATEGORY = "add_edit_category"
+  const val TRANSACTION_DETAIL = "transaction_detail"
 }
 
 /**
@@ -47,6 +49,9 @@ fun ExpenseManagerNavHost() {
         },
         onEditCategoryClick = { id ->
           navController.navigate("${Routes.ADD_EDIT_CATEGORY}?categoryId=$id")
+        },
+        onTransactionDetailClick = {
+          navController.navigate(Routes.TRANSACTION_DETAIL)
         }
       )
     }
@@ -76,6 +81,14 @@ fun ExpenseManagerNavHost() {
         onNavigateBack = {
           navController.popBackStack()
           selectedTab = 1
+        }
+      )
+    }
+
+    composable(Routes.TRANSACTION_DETAIL) {
+      TransactionDetailScreen(
+        onNavigateBack = {
+          navController.popBackStack()
         }
       )
     }
