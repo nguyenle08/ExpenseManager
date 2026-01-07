@@ -25,6 +25,12 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+//CHI TIẾT 1 DANH MỤC
+    //Chức năng
+    //Xem tổng tiền
+    //Số giao dịch
+    //Trung bình/ngày
+    //Danh sách giao dịch nhóm theo ngày
 fun CategoryReportDetailScreen(
     categoryId: Long,
     categoryName: String,
@@ -36,13 +42,17 @@ fun CategoryReportDetailScreen(
     val context = LocalContext.current
     val application = context.applicationContext as? android.app.Application
         ?: throw IllegalStateException("Application context is required")
-
+    //CategoryReportDetailScreen KHỞI TẠO ViewModel
     val viewModel: CategoryReportDetailViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     )
     val uiState by viewModel.uiState.collectAsState()
-
+    //👉 Khi đổi danh mục / thời gian → loadData()
     LaunchedEffect(categoryId, startDate, endDate) {
+        //Khi:
+        //đổi danh mục
+        //đổi thời gian
+        //→ load lại dữ liệu
         viewModel.loadData(categoryId, startDate, endDate)
     }
 
@@ -191,6 +201,9 @@ private fun StatCard(
 }
 
 @Composable
+//Mỗi ngày:
+    //Tổng tiền ngày
+    //Danh sách giao dịch
 private fun TransactionDateGroup(
     group: TransactionDateGroupUi
 ) {

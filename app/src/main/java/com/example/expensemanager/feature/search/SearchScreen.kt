@@ -28,6 +28,15 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+//TÌM KIẾM GIAO DỊCH
+  //🎯 Chức năng
+  // Tìm theo:
+    //Tên danh mục
+    //Ghi chú
+  //Lọc:
+    //Tất cả
+    //Tháng này
+    //Năm nay
 fun SearchScreen(
   onNavigateBack: () -> Unit,
   onTransactionClick: (Long) -> Unit = {}
@@ -37,10 +46,11 @@ fun SearchScreen(
     ?: throw IllegalStateException("Application context is required")
 
   val settings = rememberSettings()
-  
+  //SEARCHSCREEN KHỞI TẠO VIEWMODEL
   val viewModel: SearchViewModel = viewModel(
     factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
   )
+  //collectAsState() bắt đầu lắng nghe uiState
   val uiState by viewModel.uiState.collectAsState()
 
   var searchQuery by remember { mutableStateOf("") }
@@ -52,8 +62,10 @@ fun SearchScreen(
         title = {
           OutlinedTextField(
             value = searchQuery,
+            //🔹 Khi gõ text👉 SearchScreen gọi thẳng ViewModel
             onValueChange = { 
               searchQuery = it
+              //🔹 Search bar
               viewModel.search(it, filterType)
             },
             placeholder = { 
@@ -81,6 +93,7 @@ fun SearchScreen(
           )
         },
         navigationIcon = {
+          //👉 Khi user bấm nút Back
           IconButton(onClick = onNavigateBack) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Quay lại")
           }
@@ -100,10 +113,12 @@ fun SearchScreen(
           .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
       ) {
+        //USER ĐỔI FILTER👉 Mỗi thao tác → gọi search()
         FilterChip(
           selected = filterType == "all",
           onClick = { 
             filterType = "all"
+            //🔹 Khi đổi filter👉 Mỗi thao tác → gọi search() trong ViewModel
             viewModel.search(searchQuery, "all")
           },
           label = { Text(LocaleManager.getString(context, "all")) }
@@ -158,6 +173,7 @@ fun SearchScreen(
           }
         }
       } else {
+        //UI HIỂN THỊ KẾT QUẢ
         LazyColumn(
           modifier = Modifier
             .fillMaxSize()

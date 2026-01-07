@@ -17,9 +17,16 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * Lưu vào disk, persist khi restart app
  * Sử dụng Singleton pattern để đảm bảo tất cả màn hình chia sẻ cùng DataStore
  */
+//DATASTORE
+//🎯 Vai trò
+    //Lưu cài đặt vĩnh viễn
+    //Không mất khi restart app
 class SettingsPreferences private constructor(private val context: Context) {
     
     // Flow để observe changes
+    //👉 ViewModel observe trực tiếp
+    //👉 Mỗi setting là Flow:
+        //DataStore thay đổi → Flow emit giá trị mới
     val themeColor: Flow<String> = context.dataStore.data.map { preferences ->
         preferences[THEME_COLOR_KEY] ?: THEME_PURPLE
     }

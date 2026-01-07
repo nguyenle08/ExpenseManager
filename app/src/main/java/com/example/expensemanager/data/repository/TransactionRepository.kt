@@ -12,6 +12,9 @@ import java.time.YearMonth
 /**
  * Repository để truy cập dữ liệu Transaction
  */
+//🎯 Vai trò
+  //Trung gian giữa ViewModel ↔ DAO
+  //Gom logic truy vấn
 class TransactionRepository(private val transactionDao: TransactionDao) {
 
   /**

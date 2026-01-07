@@ -36,15 +36,19 @@ import java.util.Locale
 @Composable
 fun ReportScreen(
     onNavigateBack: () -> Unit,
+    //👉 Navigation sang CategoryReportDetailScreen
     onCategoryClick: (categoryId: Long, categoryName: String, isYearMode: Boolean, startDate: String, endDate: String) -> Unit = { _, _, _, _, _ -> }
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as? android.app.Application
         ?: throw IllegalStateException("Application context is required")
 
+//Khởi tạo ViewModel
+//ReportViewModel giữ toàn bộ dữ liệu báo cáo
     val viewModel: ReportViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     )
+    //uiState là StateFlow, Compose tự động recompose khi data đổi
     val uiState by viewModel.uiState.collectAsState()
     
     var showMonthPicker by remember { mutableStateOf(false) }
@@ -78,6 +82,7 @@ fun ReportScreen(
                             selectedPeriodTab = index
                             periodType = if (index == 0) "month" else "year"
                             if (index == 1) {
+                                //Khi chọn Năm → gọi:
                                 viewModel.onYearChanged(uiState.selectedMonth.year)
                             }
                         },
@@ -182,8 +187,8 @@ fun ReportScreen(
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Biểu đồ tròn
                     item {
+                        // Biểu đồ tròn👉 Canvas vẽ từng danh mục
                         DonutChart(
                             data = uiState.categoryStats,
                             total = uiState.total,
@@ -208,6 +213,11 @@ fun ReportScreen(
                         }
                         
                         CategoryStatItem(
+                            //Hiển thị:
+                                //Icon danh mục
+                                //Progress bar (%)
+                                //Số tiền
+                                //Số lượng giao dịch
                             stat = stat,
                             isIncome = selectedTypeTab == 1,
                             onClick = {
@@ -217,7 +227,7 @@ fun ReportScreen(
                                     uiState.isYearMode,
                                     startDateStr,
                                     endDateStr
-                                )
+                                )//👉 Điều hướng sang CategoryReportDetailScreen
                             }
                         )
                     }
@@ -232,7 +242,7 @@ fun ReportScreen(
             currentMonth = uiState.selectedMonth,
             onDismiss = { showMonthPicker = false },
             onMonthSelected = { month ->
-                viewModel.onMonthChanged(month)
+                viewModel.onMonthChanged(month)//🔹 Đổi Tháng
                 showMonthPicker = false
             }
         )
@@ -244,7 +254,7 @@ fun ReportScreen(
             currentYear = uiState.selectedMonth.year,
             onDismiss = { showYearPicker = false },
             onYearSelected = { year ->
-                viewModel.onYearChanged(year)
+                viewModel.onYearChanged(year)//🔹 Đổi Năm
                 showYearPicker = false
             }
         )

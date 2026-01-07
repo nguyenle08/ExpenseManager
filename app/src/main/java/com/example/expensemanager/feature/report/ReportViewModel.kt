@@ -23,7 +23,7 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     
     private val _uiState = MutableStateFlow(ReportUiState())
     val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
-    
+    //ReportViewModel ĐƯỢC TẠO → init {} CHẠY
     init {
         loadData()
     }
@@ -47,7 +47,7 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
         }
         loadData()
     }
-    
+    //LOGIC CHÍNH
     private fun loadData() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -59,7 +59,7 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
                 // Xác định start date và end date
                 val startDate: LocalDate
                 val endDate: LocalDate
-                
+                //Xác định khoảng thời gian👉 Quyết định dữ liệu lấy theo Tháng hay Năm
                 if (state.isYearMode) {
                     // Lọc theo năm: từ 1/1 đến 31/12
                     startDate = LocalDate.of(selectedMonth.year, 1, 1)
@@ -69,35 +69,36 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
                     startDate = selectedMonth.withDayOfMonth(1)
                     endDate = selectedMonth.withDayOfMonth(selectedMonth.lengthOfMonth())
                 }
-                
+                //Lấy dữ liệu từ Room👉 ViewModel trực tiếp gọi DAO / Repository
                 val transactions = database.transactionDao().getTransactionsByMonthOnce(startDate, endDate)
                 val categories = categoryRepository.getAllCategoriesOnce()
                 
                 val isIncome = _uiState.value.isIncome
+                //Lọc theo loại(Chi / Thu)👉 Chỉ giữ Chi tiêu hoặc Thu nhập
                 val type = if (isIncome) TransactionType.INCOME else TransactionType.EXPENSE
                 
                 // Lọc giao dịch theo loại
                 val filteredTxs = transactions.filter { it.type == type }
                 
-                // Nhóm theo category
+                // Nhóm theo category👉 Mỗi nhóm = 1 danh mục
                 val categoryMap = categories.associateBy { it.id }
                 val grouped = filteredTxs.groupBy { it.categoryId }
                 
-                // Tính tổng
+                // Tính tổng👉 Tổng chi / thu trong khoảng thời gian
                 val total = filteredTxs.sumOf { it.amount }
                 
                 // Tạo stats
                 val stats = grouped.map { (categoryId, txs) ->
                     val category = categoryId?.let { categoryMap[it] }
-                    val amount = txs.sumOf { it.amount }
-                    val percentage = if (total > 0) (amount.toFloat() / total.toFloat() * 100) else 0f
+                    val amount = txs.sumOf { it.amount }//amount = sum(amount)
+                    val percentage = if (total > 0) (amount.toFloat() / total.toFloat() * 100) else 0f//percentage = amount / total * 100
                     
                     val colorInt = try {
                         android.graphics.Color.parseColor(category?.color ?: "#607D8B")
                     } catch (e: Exception) {
                         android.graphics.Color.parseColor("#607D8B")
                     }
-                    
+                    //Tạo CategoryStatUi (UI model)
                     CategoryStatUi(
                         id = category?.id ?: 0,
                         categoryId = categoryId,
@@ -105,11 +106,11 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
                         icon = category?.icon,
                         color = Color(colorInt),
                         amount = amount,
-                        percentage = String.format("%.1f", percentage).toFloat(),
-                        count = txs.size
+                        percentage = String.format("%.1f", percentage).toFloat(),//percentage = amount / total * 100
+                        count = txs.size//số giao dịch
                     )
                 }.sortedByDescending { it.amount }
-                
+                //Đổ vào UiState👉 Compose tự động cập nhật UI
                 _uiState.update {
                     it.copy(
                         categoryStats = stats,
@@ -129,6 +130,7 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     }
 }
 
+//UI chỉ đọc, không sửa trực tiếp
 data class ReportUiState(
     val selectedMonth: LocalDate = LocalDate.now(),
     val isIncome: Boolean = false,

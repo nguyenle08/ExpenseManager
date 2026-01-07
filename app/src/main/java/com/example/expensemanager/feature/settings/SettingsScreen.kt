@@ -23,16 +23,24 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+//Chức năng
+    //Đổi:
+        //Màu giao diện
+        //Ngôn ngữ
+        //Tiền tệ
 fun SettingsScreen(
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
     val application = context.applicationContext as? android.app.Application
         ?: throw IllegalStateException("Application context is required")
-
+    //SettingsViewModel được khởi tạo
     val viewModel: SettingsViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
     )
+    //🔹 Hiển thị dựa vào uiState chứa:
+        //isLoading
+        //searchResults
     val uiState by viewModel.uiState.collectAsState()
     
     var showThemeDialog by remember { mutableStateOf(false) }

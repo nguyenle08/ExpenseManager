@@ -15,7 +15,14 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-
+//LOGIC CHI TIẾT
+//Các bước:
+    //Parse startDate, endDate
+    //Lấy giao dịch trong khoảng
+    //Lọc theo categoryId
+    //Tính: total, count, avgPerTransaction, avgPerDay
+    //Nhóm theo ngày (giảm dần)
+    //Map sang UI model
 class CategoryReportDetailViewModel(application: Application) : AndroidViewModel(application) {
     
     private val database = AppDatabase.getDatabase(application)
@@ -30,12 +37,13 @@ class CategoryReportDetailViewModel(application: Application) : AndroidViewModel
             
             try {
                 val dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                //Parse ngày
                 val startDate = LocalDate.parse(startDateStr, dateFormatter)
                 val endDate = LocalDate.parse(endDateStr, dateFormatter)
-                
+                //Lấy giao dịch trong khoảng
                 val transactions = database.transactionDao()
                     .getTransactionsByMonthOnce(startDate, endDate)
-                    .filter { it.categoryId == categoryId }
+                    .filter { it.categoryId == categoryId }//Lọc theo categoryId
                 
                 val categories = categoryRepository.getAllCategoriesOnce()
                 val categoryMap = categories.associateBy { it.id }
@@ -49,7 +57,7 @@ class CategoryReportDetailViewModel(application: Application) : AndroidViewModel
                 val daysWithTransactions = transactions.map { it.date }.distinct().size
                 val avgPerDay = if (daysWithTransactions > 0) total / daysWithTransactions else 0L
                 
-                // Nhóm theo ngày
+                // Nhóm theo ngày(giảm dần)
                 val grouped = transactions.groupBy { it.date }
                     .toSortedMap(compareByDescending { it })
                     .map { (date, txs) ->
@@ -73,7 +81,7 @@ class CategoryReportDetailViewModel(application: Application) : AndroidViewModel
                                 icon = category?.icon
                             )
                         }
-                        
+                        //Map sang UI model
                         TransactionDateGroupUi(
                             dateText = date.format(dateFormatter2),
                             totalAmount = totalAmount,

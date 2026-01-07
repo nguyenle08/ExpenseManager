@@ -155,7 +155,8 @@ fun ExpenseManagerNavHost() {
         }
       )
     }
-
+//👉 Khi điều hướng tới REPORT
+//➡️ ReportScreen() được gọi
     composable(Routes.REPORT) {
       ReportScreen(
         onNavigateBack = {
@@ -204,14 +205,15 @@ fun ExpenseManagerNavHost() {
         }
       )
     }
-    
+    //👉 Khi vào Search → SearchScreen() được gọi
     composable(Routes.SEARCH) {
+      //GỌI UI MÀN SEARCH
       SearchScreen(
         onNavigateBack = {
-          navController.popBackStack()
+          navController.popBackStack()//XỬ LÝ NÚT QUAY LẠI
         },
         onTransactionClick = { transactionId ->
-          navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")
+          navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")//CLICK 1 GIAO DỊCH
         }
       )
     }

@@ -30,14 +30,14 @@ data class SearchUiState(
   val isLoading: Boolean = false,
   val searchResults: List<SearchResultGroup> = emptyList()
 )
-
+//SEARCHVIEWMODEL XỬ LÝ TÌM KIẾM
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
   private val transactionDao = AppDatabase.getDatabase(application).transactionDao()
   private val categoryDao = AppDatabase.getDatabase(application).categoryDao()
   
   private val _uiState = MutableStateFlow(SearchUiState())
   val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
-
+//SearchViewModel ĐƯỢC TẠO → init {} CHẠY
   init {
     loadAllTransactions()
   }
@@ -47,14 +47,21 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
       _uiState.value = _uiState.value.copy(isLoading = true)
       
       try {
+        //🔹 Dùng combine()👉 Ghép transaction + category name
         combine(
-          transactionDao.getAllTransactions(),
-          categoryDao.getAllCategories()
-        ) { transactions, categories ->
+          transactionDao.getAllTransactions(), // Flow<List<Transaction>>
+          categoryDao.getAllCategories()      // Flow<List<Category>>
+        ) {
+          //Khi transaction hoặc category thay đổi
+          //combine() chạy lại
+          //Tạo dữ liệu mới cho UI
+          //Vì transaction chỉ có categoryId → cần category name
+          transactions, categories ->
           val categoryMap = categories.associateBy { it.id }
           
           transactions
             .map { transaction ->
+              //Mapping dữ liệu (Transaction → UI model)
               SearchTransactionItem(
                 id = transaction.id,
                 categoryName = categoryMap[transaction.categoryId]?.name ?: "Unknown",
@@ -64,12 +71,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 isIncome = transaction.type == TransactionType.INCOME
               )
             }
+            //Group theo ngày
             .groupBy { it.date }
             .map { (date, items) ->
               SearchResultGroup(date = date, transactions = items)
             }
             .sortedByDescending { it.date }
         }.collect { grouped ->
+          //Cập nhật UI👉 UI tự cập nhật ngay (do đang collectAsState())
           _uiState.value = _uiState.value.copy(
             isLoading = false,
             searchResults = grouped
@@ -80,14 +89,19 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
       }
     }
   }
-
+//Lọc theo:
+  //Thời gian
+  //Query
+//Group theo ngày
+//Sort giảm dần
   fun search(query: String, filterType: String) {
     viewModelScope.launch {
       _uiState.value = _uiState.value.copy(isLoading = true)
       
       try {
         val now = LocalDate.now()
-        
+        //Lấy dữ liệu từ Room
+        //👉 Không query SQL mới → dùng Flow có sẵn
         combine(
           transactionDao.getAllTransactions(),
           categoryDao.getAllCategories()
@@ -96,14 +110,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
           
           transactions
             .filter { transaction ->
-              // Filter by date range
+              // Lọc theo thời gian👉 Chỉ lọc trong bộ nhớ, không đụng DB
               val matchesDateFilter = when (filterType) {
                 "month" -> transaction.date.year == now.year && transaction.date.month == now.month
                 "year" -> transaction.date.year == now.year
                 else -> true
               }
               
-              // Filter by search query
+              // Lọc theo nội dung tìm kiếm
               val matchesQuery = if (query.isBlank()) {
                 true
               } else {
@@ -130,6 +144,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             }
             .sortedByDescending { it.date }
         }.collect { filtered ->
+          //Trả kết quả cho UI
           _uiState.value = _uiState.value.copy(
             isLoading = false,
             searchResults = filtered

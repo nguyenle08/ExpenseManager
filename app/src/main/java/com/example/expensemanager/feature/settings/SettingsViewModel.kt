@@ -23,10 +23,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
-    
+    //VIEWMODEL ĐƯỢC TẠO → init {} CHẠY, TỰ LOAD DỮ LIỆU BAN ĐẦU
     init {
         // Load settings from DataStore
         viewModelScope.launch {
+            //🔹 Kết nối DataStore👉 DataStore thay đổi → UI tự cập nhật
             combine(
                 settingsPreferences.themeColor,
                 settingsPreferences.language,
@@ -37,6 +38,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     language = language,
                     currency = currency
                 )
+                //👉 ViewModel:
+                    //Nhận state mới
+                    //Gán cho _uiState
+                    //UI tự recompose
             }.collect { newState ->
                 _uiState.value = newState
             }
@@ -48,7 +53,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             settingsPreferences.setThemeColor(color)
         }
     }
-    
+    //🔹 Set giá trị
     fun setLanguage(language: String) {
         viewModelScope.launch {
             settingsPreferences.setLanguage(language)
