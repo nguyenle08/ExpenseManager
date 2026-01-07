@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.DownloadForOffline
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -71,7 +73,7 @@ fun ReportScreen(
                         onClick = {
                             val currentMonth = uiState.selectedMonth.monthValue
                             val currentYear = uiState.selectedMonth.year
-                            PdfHelper.exportReportToPdf(
+                            val pdfFile = PdfHelper.exportReportToPdf(
                                 context = context,
                                 month = currentMonth,
                                 year = currentYear,
@@ -80,10 +82,20 @@ fun ReportScreen(
                                 isIncome = uiState.isIncome,
                                 language = "vi"
                             )
+                            pdfFile?.let { file ->
+                                PdfHelper.openPdfFile(context, file)
+                            }
                         }
                     ) {
-                        // Dùng lại icon Share cho nút PDF để tránh lỗi icon
-                        Icon(Icons.Default.Share, "Xuất PDF")
+                        Icon(Icons.Default.DownloadForOffline, "Xuất PDF")
+                    }
+                    // View saved PDFs button
+                    IconButton(
+                        onClick = {
+                            PdfHelper.openDownloadsFolder(context)
+                        }
+                    ) {
+                        Icon(Icons.Default.Folder, "Xem PDF đã lưu")
                     }
                     // Share button
                     IconButton(

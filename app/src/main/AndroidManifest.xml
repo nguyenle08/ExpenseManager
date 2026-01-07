@@ -34,6 +34,17 @@
             android:authorities="com.example.expensemanager.provider"
             android:exported="true"
             android:readPermission="android.permission.READ_USER_DICTIONARY" />
+        
+        <!-- FileProvider for sharing PDF files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.example.expensemanager.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>
