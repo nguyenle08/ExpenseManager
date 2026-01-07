@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         val settingsPreferences = SettingsPreferences.getInstance(this)
         
         setContent {
-            val themeColor by settingsPreferences.themeColor.collectAsState()
+            val themeColor by settingsPreferences.themeColor.collectAsState(initial = SettingsPreferences.THEME_PURPLE)
             
             ExpenseManagerTheme(themeColor = themeColor) {
                 Surface(modifier = Modifier.fillMaxSize()) {
