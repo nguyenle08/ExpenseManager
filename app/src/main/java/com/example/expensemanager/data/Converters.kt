@@ -9,7 +9,7 @@ import java.time.LocalDate
  * Chuyển đổi giữa kiểu dữ liệu Java/Kotlin và SQLite
  */
 class Converters {
-    
+
     /**
      * LocalDate → String (ISO format: 2026-01-04)
      */
@@ -17,7 +17,7 @@ class Converters {
     fun fromLocalDate(date: LocalDate?): String? {
         return date?.toString()
     }
-    
+
     /**
      * String → LocalDate
      */
@@ -25,7 +25,7 @@ class Converters {
     fun toLocalDate(dateString: String?): LocalDate? {
         return dateString?.let { LocalDate.parse(it) }
     }
-    
+
     /**
      * TransactionType → String
      */
@@ -33,7 +33,7 @@ class Converters {
     fun fromTransactionType(type: TransactionType?): String? {
         return type?.name
     }
-    
+
     /**
      * String → TransactionType
      */
@@ -42,3 +42,13 @@ class Converters {
         return value?.let { TransactionType.valueOf(it) }
     }
 }
+
+/*
+Vì sao cần?
+Room không hiểu:
+LocalDate
+Enum (TransactionType)
+👉 Phải convert sang String
+
+Lấy lên: String → Enum
+ */

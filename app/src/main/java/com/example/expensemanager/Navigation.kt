@@ -14,6 +14,7 @@ import com.example.expensemanager.feature.addtransaction.AddTransactionScreen
 import com.example.expensemanager.feature.categorymanagement.AddEditCategoryScreen
 import com.example.expensemanager.feature.main.MainScreen
 import com.example.expensemanager.feature.transactiondetail.TransactionDetailScreen
+import com.example.expensemanager.feature.transactiondetail.TransactionDetailItemScreen
 
 /**
  * Navigation routes
@@ -21,8 +22,10 @@ import com.example.expensemanager.feature.transactiondetail.TransactionDetailScr
 object Routes {
   const val MAIN = "main"
   const val ADD_TRANSACTION = "add_transaction"
+  const val EDIT_TRANSACTION = "edit_transaction"
   const val ADD_EDIT_CATEGORY = "add_edit_category"
   const val TRANSACTION_DETAIL = "transaction_detail"
+  const val TRANSACTION_DETAIL_ITEM = "transaction_detail_item"
 }
 
 /**
@@ -52,12 +55,32 @@ fun ExpenseManagerNavHost() {
         },
         onTransactionDetailClick = {
           navController.navigate(Routes.TRANSACTION_DETAIL)
+        },
+        onTransactionItemClick = { transactionId ->
+          navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")
         }
       )
     }
 
     composable(Routes.ADD_TRANSACTION) {
       AddTransactionScreen(
+        onNavigateBack = {
+          navController.popBackStack()
+        }
+      )
+    }
+
+    composable(
+      route = "${Routes.EDIT_TRANSACTION}/{transactionId}",
+      arguments = listOf(
+        navArgument("transactionId") {
+          type = NavType.LongType
+        }
+      )
+    ) { backStackEntry ->
+      val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: 0L
+      AddTransactionScreen(
+        transactionId = transactionId,
         onNavigateBack = {
           navController.popBackStack()
         }
@@ -89,6 +112,29 @@ fun ExpenseManagerNavHost() {
       TransactionDetailScreen(
         onNavigateBack = {
           navController.popBackStack()
+        },
+        onTransactionClick = { transactionId ->
+          navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")
+        }
+      )
+    }
+
+    composable(
+      route = "${Routes.TRANSACTION_DETAIL_ITEM}/{transactionId}",
+      arguments = listOf(
+        navArgument("transactionId") {
+          type = NavType.LongType
+        }
+      )
+    ) { backStackEntry ->
+      val transactionId = backStackEntry.arguments?.getLong("transactionId") ?: 0L
+      TransactionDetailItemScreen(
+        transactionId = transactionId,
+        onNavigateBack = {
+          navController.popBackStack()
+        },
+        onNavigateToEdit = { id ->
+          navController.navigate("${Routes.EDIT_TRANSACTION}/$id")
         }
       )
     }

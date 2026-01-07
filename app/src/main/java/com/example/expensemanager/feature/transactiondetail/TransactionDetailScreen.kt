@@ -1,6 +1,8 @@
 package com.example.expensemanager.feature.transactiondetail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -32,7 +34,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionDetailScreen(
-  onNavigateBack: () -> Unit
+  onNavigateBack: () -> Unit,
+  onTransactionClick: (Long) -> Unit = {}
 ) {
   val context = LocalContext.current
   val application = context.applicationContext as? android.app.Application
@@ -42,6 +45,11 @@ fun TransactionDetailScreen(
     factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
   )
   val uiState by viewModel.uiState.collectAsState()
+
+  // Refresh data khi màn hình được hiển thị lại
+  LaunchedEffect(Unit) {
+    viewModel.refreshData()
+  }
 
   Scaffold(
     topBar = {
@@ -94,7 +102,10 @@ fun TransactionDetailScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
           ) {
             items(uiState.dailyGroups) { group ->
-              DayTransactionCard(group = group)
+              DayTransactionCard(
+                group = group,
+                onTransactionClick = onTransactionClick
+              )
             }
           }
         }
@@ -305,7 +316,8 @@ private fun SummaryHeader(
 
 @Composable
 private fun DayTransactionCard(
-  group: DayTransactionGroup
+  group: DayTransactionGroup,
+  onTransactionClick: (Long) -> Unit = {}
 ) {
   val formatter = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
   val dateFormatter = remember { DateTimeFormatter.ofPattern("dd/MM") }
@@ -347,19 +359,30 @@ private fun DayTransactionCard(
       }
 
       group.transactions.forEach { item ->
-        TransactionRow(item = item)
+        TransactionRow(
+          item = item,
+          onClick = { onTransactionClick(item.id) }
+        )
       }
     }
   }
 }
 
 @Composable
-private fun TransactionRow(item: TransactionItemUi) {
+private fun TransactionRow(
+  item: TransactionItemUi,
+  onClick: () -> Unit = {}
+) {
   val formatter = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
 
   Row(
     modifier = Modifier
       .fillMaxWidth()
+      .clickable(
+        indication = null,
+        interactionSource = remember { MutableInteractionSource() },
+        onClick = onClick
+      )
       .padding(vertical = 6.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {

@@ -56,6 +56,18 @@ interface TransactionDao {
   suspend fun getTransactionById(id: Long): TransactionEntity?
 
   /**
+   * Lấy giao dịch với thông tin category theo ID
+   */
+  @Query("""
+        SELECT t.id, t.amount, t.type, t.categoryId, t.note, t.date, t.createdAt,
+               c.name as categoryName, c.color as categoryColor, c.icon as categoryIcon
+        FROM transactions t
+        LEFT JOIN categories c ON t.categoryId = c.id
+        WHERE t.id = :id
+    """)
+  suspend fun getTransactionWithCategoryById(id: Long): TransactionWithCategory?
+
+  /**
    * Tổng thu trong tháng
    */
   @Query("""
@@ -101,4 +113,20 @@ data class DailyTransaction(
   val date: LocalDate,
   val totalIncome: Long,
   val totalExpense: Long
+)
+
+/**
+ * Data class cho giao dịch với thông tin category
+ */
+data class TransactionWithCategory(
+  val id: Long,
+  val amount: Long,
+  val type: TransactionType,
+  val categoryId: Long,
+  val note: String,
+  val date: LocalDate,
+  val createdAt: Long,
+  val categoryName: String?,
+  val categoryColor: String?,
+  val categoryIcon: String?
 )

@@ -11,7 +11,7 @@ import java.time.LocalDate
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    
+
     val amount: Long,                    // Số tiền (VND)
     val type: TransactionType,           // Thu hoặc Chi
     val categoryId: Long,                // ID danh mục
@@ -27,3 +27,11 @@ enum class TransactionType {
     INCOME,   // Thu nhập
     EXPENSE   // Chi tiêu
 }
+
+/*
+Phân loại danh mục
+Dùng cho:
+Filter tab
+Query Room
+Logic UI
+ */

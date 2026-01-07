@@ -35,6 +35,13 @@ class TransactionDetailViewModel(application: Application) : AndroidViewModel(ap
     loadDataForMonth(month)
   }
 
+  /**
+   * Refresh dữ liệu cho tháng hiện tại
+   */
+  fun refreshData() {
+    loadDataForMonth(_uiState.value.selectedMonth)
+  }
+
   private fun loadDataForMonth(month: LocalDate) {
     viewModelScope.launch {
       _uiState.update { it.copy(isLoading = true, error = null) }

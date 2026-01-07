@@ -10,10 +10,15 @@ import androidx.room.PrimaryKey
 data class CategoryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    
+
     val name: String,                    // Tên danh mục (Ăn uống, Mua sắm, Lương...)
     val type: TransactionType,           // Loại (Thu/Chi)
     val icon: String = "💰",             // Icon emoji
     val color: String = "#4CAF50",       // Màu sắc (hex)
     val isDefault: Boolean = false       // Danh mục mặc định không xóa được
 )
+/*
+Room dùng class này để:
+Tạo bảng
+Map dữ liệu SQLite ↔ Kotlin
+ */

@@ -28,7 +28,8 @@ fun MainScreen(
   onAddTransactionClick: () -> Unit = {},
   onAddCategoryClick: () -> Unit = {},
   onEditCategoryClick: (Long) -> Unit = {},
-  onTransactionDetailClick: () -> Unit = {}
+  onTransactionDetailClick: () -> Unit = {},
+  onTransactionItemClick: (Long) -> Unit = {}
 ) {
 
   Scaffold(
@@ -73,7 +74,8 @@ fun MainScreen(
           onEditCategoryClick = onEditCategoryClick
         )
         2 -> TransactionDetailScreen(
-          onNavigateBack = { onTabSelected(0) }
+          onNavigateBack = { onTabSelected(0) },
+          onTransactionClick = onTransactionItemClick
         )
         3 -> ProfileScreen()
       }
