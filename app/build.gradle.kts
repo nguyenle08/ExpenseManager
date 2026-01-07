@@ -71,6 +71,9 @@ dependencies {
     // DataStore for Settings
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     
+    // WorkManager for Background Tasks
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
     

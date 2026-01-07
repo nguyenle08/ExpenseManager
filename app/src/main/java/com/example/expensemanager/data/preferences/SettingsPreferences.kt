@@ -32,6 +32,10 @@ class SettingsPreferences private constructor(private val context: Context) {
         preferences[CURRENCY_KEY] ?: CURRENCY_VND
     }
     
+    val isDarkMode: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[DARK_MODE_KEY] ?: false
+    }
+    
     // Save functions
     suspend fun setThemeColor(color: String) {
         context.dataStore.edit { preferences ->
@@ -51,11 +55,18 @@ class SettingsPreferences private constructor(private val context: Context) {
         }
     }
     
+    suspend fun setDarkMode(isDark: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DARK_MODE_KEY] = isDark
+        }
+    }
+    
     companion object {
         // Preference keys
         private val THEME_COLOR_KEY = stringPreferencesKey("theme_color")
         private val LANGUAGE_KEY = stringPreferencesKey("language")
         private val CURRENCY_KEY = stringPreferencesKey("currency")
+        private val DARK_MODE_KEY = androidx.datastore.preferences.core.booleanPreferencesKey("dark_mode")
         
         // Singleton instance
         @Volatile

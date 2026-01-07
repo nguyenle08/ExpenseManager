@@ -1,5 +1,7 @@
 package com.example.expensemanager.feature.addtransaction
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -304,6 +307,13 @@ private fun CategoryItem(
   isSelected: Boolean,
   onClick: () -> Unit
 ) {
+  // Scale animation when selected
+  val scale by animateFloatAsState(
+    targetValue = if (isSelected) 1.05f else 1f,
+    animationSpec = tween(durationMillis = 200),
+    label = "categoryScale"
+  )
+  
   val backgroundColor = if (isSelected) {
     try {
       Color(category.color.toColorInt())
@@ -320,7 +330,8 @@ private fun CategoryItem(
     onClick = onClick,
     modifier = Modifier
       .aspectRatio(1f)
-      .fillMaxWidth(),
+      .fillMaxWidth()
+      .scale(scale),
     shape = MaterialTheme.shapes.medium,
     color = backgroundColor
   ) {

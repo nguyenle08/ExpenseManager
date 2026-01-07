@@ -94,6 +94,63 @@ fun SettingsScreen(
                     onClick = { showCurrencyDialog = true }
                 )
             }
+            
+            // Dark Mode
+            item {
+                SettingItemWithSwitch(
+                    title = if (uiState.language == "vi") "Chế độ tối" else "Dark Mode",
+                    subtitle = if (uiState.isDarkMode) {
+                        if (uiState.language == "vi") "Bật" else "On"
+                    } else {
+                        if (uiState.language == "vi") "Tắt" else "Off"
+                    },
+                    checked = uiState.isDarkMode,
+                    onCheckedChange = { viewModel.setDarkMode(it) }
+                )
+            }
+            
+            // Test Notification Button
+            item {
+                SettingItem(
+                    title = if (uiState.language == "vi") "Test Thông báo" else "Test Notification",
+                    subtitle = if (uiState.language == "vi") "Xem thử notification" else "Preview notification",
+                    onClick = { 
+                        com.example.expensemanager.util.NotificationHelper.showReminderNotification(
+                            context = context,
+                            title = "Nhắc nhở chi tiêu 💸",
+                            message = "Đây là notification test! Click để mở app."
+                        )
+                    }
+                )
+            }
+            
+            // Test Content Provider Button
+            item {
+                SettingItem(
+                    title = if (uiState.language == "vi") "Test Content Provider" else "Test Content Provider",
+                    subtitle = if (uiState.language == "vi") "Query dữ liệu từ provider" else "Query data from provider",
+                    onClick = { 
+                        try {
+                            val uri = android.net.Uri.parse("content://com.example.expensemanager.provider/transactions")
+                            val cursor = context.contentResolver.query(uri, null, null, null, null)
+                            val count = cursor?.count ?: 0
+                            cursor?.close()
+                            
+                            com.example.expensemanager.util.NotificationHelper.showReminderNotification(
+                                context = context,
+                                title = "Content Provider Test",
+                                message = "Tìm thấy $count transactions qua Content Provider!"
+                            )
+                        } catch (e: Exception) {
+                            com.example.expensemanager.util.NotificationHelper.showReminderNotification(
+                                context = context,
+                                title = "Content Provider Error",
+                                message = "Lỗi: ${e.message}"
+                            )
+                        }
+                    }
+                )
+            }
         }
     }
     
@@ -174,11 +231,49 @@ private fun SettingItem(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
-            if (icon != null) {
-                Spacer(modifier = Modifier.width(16.dp))
-                icon()
+            icon?.invoke()
+        }
+    }
+}
+
+@Composable
+private fun SettingItemWithSwitch(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+            
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
         }
     }
 }

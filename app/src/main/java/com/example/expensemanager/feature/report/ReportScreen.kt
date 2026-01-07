@@ -1,5 +1,8 @@
 package com.example.expensemanager.feature.report
 
+import android.content.Intent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
+import com.example.expensemanager.util.PdfHelper
 import androidx.lifecycle.viewmodel.compose.viewModel
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -58,6 +63,41 @@ fun ReportScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, "Quay lại")
+                    }
+                },
+                actions = {
+                    // Export PDF button
+                    IconButton(
+                        onClick = {
+                            val currentMonth = uiState.selectedMonth.monthValue
+                            val currentYear = uiState.selectedMonth.year
+                            PdfHelper.exportReportToPdf(
+                                context = context,
+                                month = currentMonth,
+                                year = currentYear,
+                                categoryStats = uiState.categoryStats,
+                                total = uiState.total,
+                                isIncome = uiState.isIncome,
+                                language = "vi"
+                            )
+                        }
+                    ) {
+                        // Dùng lại icon Share cho nút PDF để tránh lỗi icon
+                        Icon(Icons.Default.Share, "Xuất PDF")
+                    }
+                    // Share button
+                    IconButton(
+                        onClick = {
+                            val reportText = buildReportText(uiState, periodType)
+                            val shareIntent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, reportText)
+                                type = "text/plain"
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, "Chia sẻ báo cáo"))
+                        }
+                    ) {
+                        Icon(Icons.Default.Share, "Chia sẻ báo cáo")
                     }
                 }
             )
@@ -259,6 +299,18 @@ private fun DonutChart(
 ) {
     val formatter = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
     
+    // Animation for chart
+    var animationPlayed by remember { mutableStateOf(false) }
+    val animationProgress by animateFloatAsState(
+        targetValue = if (animationPlayed) 1f else 0f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "chartAnimation"
+    )
+    
+    LaunchedEffect(Unit) {
+        animationPlayed = true
+    }
+    
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -288,7 +340,7 @@ private fun DonutChart(
                     var startAngle = -90f
 
                     data.forEach { stat ->
-                        val sweepAngle = (stat.amount.toFloat() / total.toFloat()) * 360f
+                        val sweepAngle = (stat.amount.toFloat() / total.toFloat()) * 360f * animationProgress
                         
                         drawArc(
                             color = stat.color,
@@ -365,6 +417,18 @@ private fun CategoryStatItem(
     val formatter = remember { NumberFormat.getInstance(Locale("vi", "VN")) }
     val interactionSource = remember { MutableInteractionSource() }
     
+    // Animation for progress bar
+    var animationPlayed by remember { mutableStateOf(false) }
+    val animationProgress by animateFloatAsState(
+        targetValue = if (animationPlayed) 1f else 0f,
+        animationSpec = tween(durationMillis = 800),
+        label = "progressAnimation"
+    )
+    
+    LaunchedEffect(Unit) {
+        animationPlayed = true
+    }
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -405,7 +469,7 @@ private fun CategoryStatItem(
                 )
                 // Progress bar
                 LinearProgressIndicator(
-                    progress = { stat.percentage / 100f },
+                    progress = { (stat.percentage / 100f) * animationProgress },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp),
@@ -622,4 +686,42 @@ private fun YearPickerDialog(
         confirmButton = {},
         dismissButton = {}
     )
+}
+
+/**
+ * Build text for sharing report
+ */
+private fun buildReportText(uiState: ReportUiState, periodType: String): String {
+    val period = if (periodType == "month") {
+        "tháng ${uiState.selectedMonth.monthValue}/${uiState.selectedMonth.year}"
+    } else {
+        "năm ${uiState.selectedMonth.year}"
+    }
+    
+    val type = if (uiState.isIncome) "THU NHẬP" else "CHI TIÊU"
+    
+    val categoryBreakdown = uiState.categoryStats
+        .sortedByDescending { it.amount }
+        .take(5)
+        .joinToString("\n") { stat ->
+            val icon = stat.icon ?: "📌"
+            "  $icon ${stat.name}: ${formatMoney(stat.amount)} (${stat.percentage.toInt()}%)"
+        }
+    
+    return """
+📊 BÁO CÁO $type $period
+
+💰 Tổng: ${formatMoney(uiState.total)}
+
+📋 Chi tiết theo danh mục:
+$categoryBreakdown
+
+---
+Tạo từ ExpenseManager
+    """.trimIndent()
+}
+
+private fun formatMoney(amount: Long): String {
+    val formatter = NumberFormat.getInstance(Locale("vi", "VN"))
+    return "${formatter.format(amount)} ₫"
 }

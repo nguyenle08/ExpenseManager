@@ -19,7 +19,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         SettingsUiState(
             themeColor = SettingsPreferences.THEME_PURPLE,
             language = SettingsPreferences.LANGUAGE_VI,
-            currency = SettingsPreferences.CURRENCY_VND
+            currency = SettingsPreferences.CURRENCY_VND,
+            isDarkMode = false
         )
     )
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -30,12 +31,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             combine(
                 settingsPreferences.themeColor,
                 settingsPreferences.language,
-                settingsPreferences.currency
-            ) { themeColor, language, currency ->
+                settingsPreferences.currency,
+                settingsPreferences.isDarkMode
+            ) { themeColor, language, currency, isDarkMode ->
                 SettingsUiState(
                     themeColor = themeColor,
                     language = language,
-                    currency = currency
+                    currency = currency,
+                    isDarkMode = isDarkMode
                 )
             }.collect { newState ->
                 _uiState.value = newState
@@ -60,10 +63,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             settingsPreferences.setCurrency(currency)
         }
     }
+    
+    fun setDarkMode(isDark: Boolean) {
+        viewModelScope.launch {
+            settingsPreferences.setDarkMode(isDark)
+        }
+    }
 }
 
 data class SettingsUiState(
     val themeColor: String = SettingsPreferences.THEME_PURPLE,
     val language: String = SettingsPreferences.LANGUAGE_VI,
-    val currency: String = SettingsPreferences.CURRENCY_VND
+    val currency: String = SettingsPreferences.CURRENCY_VND,
+    val isDarkMode: Boolean = false
 )
