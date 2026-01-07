@@ -11,7 +11,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +28,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.expensemanager.data.preferences.SettingsPreferences
+import com.example.expensemanager.ui.composable.rememberSettings
+import com.example.expensemanager.util.CurrencyFormatter
+import com.example.expensemanager.util.LocaleManager
 import com.example.expensemanager.widget.SimpleLineChart
 import java.text.NumberFormat
 import java.time.LocalDate
@@ -39,12 +45,17 @@ import java.util.Locale
 fun HomeScreen(
   onAddTransactionClick: () -> Unit = {},
   onCategoryManagementClick: () -> Unit = {},
-  onTransactionDetailClick: () -> Unit = {}
+  onTransactionDetailClick: () -> Unit = {},
+  onReportClick: () -> Unit = {},
+  onSettingsClick: () -> Unit = {},
+  onSearchClick: () -> Unit = {}
 ) {
   val context = LocalContext.current
   val application = context.applicationContext as? android.app.Application
     ?: throw IllegalStateException("Application context is required")
 
+  val settings = rememberSettings()
+  
   val viewModel: HomeViewModel = viewModel(
     factory = ViewModelProvider.AndroidViewModelFactory.getInstance(application)
   )
@@ -53,22 +64,9 @@ fun HomeScreen(
   Scaffold(
     topBar = {
       HomeTopBar(
-        onSettingsClick = onCategoryManagementClick,
-        onTransactionDetailClick = onTransactionDetailClick
+        onSearchClick = onSearchClick,
+        onSettingsClick = onSettingsClick
       )
-    },
-    floatingActionButton = {
-      FloatingActionButton(
-        onClick = onAddTransactionClick,
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        shape = CircleShape
-      ) {
-        Icon(
-          imageVector = Icons.Default.Add,
-          contentDescription = "Thêm giao dịch"
-        )
-      }
     }
   ) { paddingValues ->
     Box(
@@ -83,7 +81,8 @@ fun HomeScreen(
       } else {
         HomeContent(
           uiState = uiState,
-          onMonthChanged = { viewModel.onMonthChanged(it) }
+          onMonthChanged = { viewModel.onMonthChanged(it) },
+          settings = settings
         )
       }
     }
@@ -233,29 +232,31 @@ private fun MonthYearSelector(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HomeTopBar(
-  onSettingsClick: () -> Unit = {},
-  onTransactionDetailClick: () -> Unit = {}
+  onSearchClick: () -> Unit = {},
+  onSettingsClick: () -> Unit = {}
 ) {
+  val context = LocalContext.current
+  
   TopAppBar(
     title = {
       Text(
-        text = "Trang chủ",
+        text = LocaleManager.getString(context, "home_title"),
         style = MaterialTheme.typography.titleLarge,
         fontWeight = FontWeight.Bold
       )
     },
     actions = {
-      IconButton(onClick = onTransactionDetailClick) {
+      IconButton(onClick = onSearchClick) {
         Icon(
-          imageVector = Icons.Default.List,
-          contentDescription = "Xem chi tiết giao dịch",
+          imageVector = Icons.Default.Search,
+          contentDescription = LocaleManager.getString(context, "search"),
           tint = MaterialTheme.colorScheme.onSurface
         )
       }
       IconButton(onClick = onSettingsClick) {
         Icon(
           imageVector = Icons.Default.Settings,
-          contentDescription = "Quản lý danh mục",
+          contentDescription = "Cài đặt",
           tint = MaterialTheme.colorScheme.onSurface
         )
       }
@@ -273,7 +274,8 @@ private fun HomeTopBar(
 @Composable
 private fun HomeContent(
   uiState: HomeUiState,
-  onMonthChanged: (LocalDate) -> Unit
+  onMonthChanged: (LocalDate) -> Unit,
+  settings: com.example.expensemanager.ui.composable.SettingsState
 ) {
   Column(
     modifier = Modifier
@@ -287,12 +289,14 @@ private fun HomeContent(
       balance = uiState.balance,
       totalIncome = uiState.totalIncome,
       totalExpense = uiState.totalExpense,
-      onMonthChanged = onMonthChanged
+      onMonthChanged = onMonthChanged,
+      settings = settings
     )
 
     DailyOverviewCard(
       selectedMonth = uiState.selectedMonth,
-      chartData = uiState.chartData
+      chartData = uiState.chartData,
+      settings = settings
     )
 
     Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
@@ -306,7 +310,8 @@ private fun HomeHeaderCard(
   balance: Long,
   totalIncome: Long,
   totalExpense: Long,
-  onMonthChanged: (LocalDate) -> Unit
+  onMonthChanged: (LocalDate) -> Unit,
+  settings: com.example.expensemanager.ui.composable.SettingsState
 ) {
   ElevatedCard(
     modifier = Modifier.fillMaxWidth(),
@@ -377,13 +382,13 @@ private fun HomeHeaderCard(
         verticalArrangement = Arrangement.spacedBy(8.dp)
       ) {
         Text(
-          text = "Số dư tháng này",
+          text = LocaleManager.getString(settings.context, "balance"),
           style = MaterialTheme.typography.bodyMedium,
           color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
         )
 
         Text(
-          text = formatCurrency(balance),
+          text = CurrencyFormatter.format(balance, settings.context),
           style = MaterialTheme.typography.headlineMedium,
           fontWeight = FontWeight.Bold,
           color = MaterialTheme.colorScheme.onPrimary
@@ -395,12 +400,12 @@ private fun HomeHeaderCard(
         ) {
           Column {
             Text(
-              text = "Thu nhập",
+              text = LocaleManager.getString(settings.context, "income"),
               style = MaterialTheme.typography.labelMedium,
               color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
             )
             Text(
-              text = formatCurrency(totalIncome),
+              text = CurrencyFormatter.format(totalIncome, settings.context),
               style = MaterialTheme.typography.bodyLarge,
               fontWeight = FontWeight.SemiBold,
               color = Color(0xFFB2FF59)
@@ -409,12 +414,12 @@ private fun HomeHeaderCard(
 
           Column(horizontalAlignment = Alignment.End) {
             Text(
-              text = "Chi tiêu",
+              text = LocaleManager.getString(settings.context, "expense"),
               style = MaterialTheme.typography.labelMedium,
               color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
             )
             Text(
-              text = formatCurrency(totalExpense),
+              text = CurrencyFormatter.format(totalExpense, settings.context),
               style = MaterialTheme.typography.bodyLarge,
               fontWeight = FontWeight.SemiBold,
               color = Color(0xFFFFCDD2)
@@ -431,7 +436,8 @@ private enum class ChartMode { EXPENSE, INCOME }
 @Composable
 private fun DailyOverviewCard(
   selectedMonth: LocalDate,
-  chartData: List<DayData>
+  chartData: List<DayData>,
+  settings: com.example.expensemanager.ui.composable.SettingsState
 ) {
   var chartMode by remember { mutableStateOf(ChartMode.EXPENSE) }
 
@@ -494,7 +500,8 @@ private fun DailyOverviewCard(
 
       DailyStatsTable(
         selectedMonth = selectedMonth,
-        data = chartData
+        data = chartData,
+        settings = settings
       )
     }
   }
@@ -503,7 +510,8 @@ private fun DailyOverviewCard(
 @Composable
 private fun DailyStatsTable(
   selectedMonth: LocalDate,
-  data: List<DayData>
+  data: List<DayData>,
+  settings: com.example.expensemanager.ui.composable.SettingsState
 ) {
   if (data.isEmpty()) {
     Text(
@@ -548,21 +556,21 @@ private fun DailyStatsTable(
         modifier = Modifier.weight(1f)
       )
       Text(
-        text = formatCurrency(totalIncome),
+        text = CurrencyFormatter.format(totalIncome, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         color = Color(0xFF4CAF50),
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.End
       )
       Text(
-        text = formatCurrency(totalExpense),
+        text = CurrencyFormatter.format(totalExpense, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         color = Color(0xFFF44336),
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.End
       )
       Text(
-        text = formatCurrency(totalIncome - totalExpense),
+        text = CurrencyFormatter.format(totalIncome - totalExpense, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.weight(1f),
@@ -577,19 +585,19 @@ private fun DailyStatsTable(
         modifier = Modifier.weight(1f)
       )
       Text(
-        text = formatCurrency(avgIncome),
+        text = CurrencyFormatter.format(avgIncome, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.End
       )
       Text(
-        text = formatCurrency(avgExpense),
+        text = CurrencyFormatter.format(avgExpense, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.End
       )
       Text(
-        text = formatCurrency(avgIncome - avgExpense),
+        text = CurrencyFormatter.format(avgIncome - avgExpense, settings.context),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.weight(1f),
         textAlign = TextAlign.End
@@ -601,27 +609,27 @@ private fun DailyStatsTable(
     // Header
     Row(modifier = Modifier.fillMaxWidth()) {
       Text(
-        text = "Ngày",
+        text = LocaleManager.getString(settings.context, "date"),
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.weight(1f)
       )
       Text(
-        text = "Thu nhập",
-        style = MaterialTheme.typography.labelMedium,
-        fontWeight = FontWeight.SemiBold,
-        textAlign = TextAlign.End,
-        modifier = Modifier.weight(1f)
-      )
-      Text(
-        text = "Chi tiêu",
+        text = LocaleManager.getString(settings.context, "income"),
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
         textAlign = TextAlign.End,
         modifier = Modifier.weight(1f)
       )
       Text(
-        text = "Số dư",
+        text = LocaleManager.getString(settings.context, "expense"),
+        style = MaterialTheme.typography.labelMedium,
+        fontWeight = FontWeight.SemiBold,
+        textAlign = TextAlign.End,
+        modifier = Modifier.weight(1f)
+      )
+      Text(
+        text = LocaleManager.getString(settings.context, "balance"),
         style = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.SemiBold,
         textAlign = TextAlign.End,
@@ -641,19 +649,19 @@ private fun DailyStatsTable(
           modifier = Modifier.weight(1f)
         )
         Text(
-          text = if (day.income == 0L) "-" else formatCurrency(day.income),
+          text = if (day.income == 0L) "-" else CurrencyFormatter.format(day.income, settings.context),
           style = MaterialTheme.typography.bodySmall,
           textAlign = TextAlign.End,
           modifier = Modifier.weight(1f)
         )
         Text(
-          text = if (day.expense == 0L) "-" else formatCurrency(day.expense),
+          text = if (day.expense == 0L) "-" else CurrencyFormatter.format(day.expense, settings.context),
           style = MaterialTheme.typography.bodySmall,
           textAlign = TextAlign.End,
           modifier = Modifier.weight(1f)
         )
         Text(
-          text = formatCurrency(runningBalance),
+          text = CurrencyFormatter.format(runningBalance, settings.context),
           style = MaterialTheme.typography.bodySmall,
           textAlign = TextAlign.End,
           modifier = Modifier.weight(1f)
@@ -671,6 +679,7 @@ private fun AnimatedSummaryCard(
   title: String,
   amount: Long,
   color: Color,
+  settings: com.example.expensemanager.ui.composable.SettingsState,
   modifier: Modifier = Modifier
 ) {
   var animatedAmount by remember { mutableStateOf(0L) }
@@ -707,20 +716,13 @@ private fun AnimatedSummaryCard(
       )
 
       Text(
-        text = formatCurrency(animatedAmount),
+        text = CurrencyFormatter.format(animatedAmount, settings.context),
         style = MaterialTheme.typography.headlineSmall,
         fontWeight = FontWeight.Bold,
         color = color
       )
     }
   }
-}
-/**
- * Format số tiền theo định dạng VND
- */
-private fun formatCurrency(amount: Long): String {
-  val formatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("vi-VN"))
-  return formatter.format(amount)
 }
 
 /**

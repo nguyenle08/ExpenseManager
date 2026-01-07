@@ -13,6 +13,10 @@ import androidx.navigation.NavType
 import com.example.expensemanager.feature.addtransaction.AddTransactionScreen
 import com.example.expensemanager.feature.categorymanagement.AddEditCategoryScreen
 import com.example.expensemanager.feature.main.MainScreen
+import com.example.expensemanager.feature.report.CategoryReportDetailScreen
+import com.example.expensemanager.feature.report.ReportScreen
+import com.example.expensemanager.feature.search.SearchScreen
+import com.example.expensemanager.feature.settings.SettingsScreen
 import com.example.expensemanager.feature.transactiondetail.TransactionDetailScreen
 import com.example.expensemanager.feature.transactiondetail.TransactionDetailItemScreen
 
@@ -26,6 +30,10 @@ object Routes {
   const val ADD_EDIT_CATEGORY = "add_edit_category"
   const val TRANSACTION_DETAIL = "transaction_detail"
   const val TRANSACTION_DETAIL_ITEM = "transaction_detail_item"
+  const val REPORT = "report"
+  const val CATEGORY_REPORT_DETAIL = "category_report_detail"
+  const val SETTINGS = "settings"
+  const val SEARCH = "search"
 }
 
 /**
@@ -58,6 +66,15 @@ fun ExpenseManagerNavHost() {
         },
         onTransactionItemClick = { transactionId ->
           navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")
+        },
+        onReportClick = {
+          navController.navigate(Routes.REPORT)
+        },
+        onSettingsClick = {
+          navController.navigate(Routes.SETTINGS)
+        },
+        onSearchClick = {
+          navController.navigate(Routes.SEARCH)
         }
       )
     }
@@ -135,6 +152,66 @@ fun ExpenseManagerNavHost() {
         },
         onNavigateToEdit = { id ->
           navController.navigate("${Routes.EDIT_TRANSACTION}/$id")
+        }
+      )
+    }
+
+    composable(Routes.REPORT) {
+      ReportScreen(
+        onNavigateBack = {
+          navController.popBackStack()
+        },
+        onCategoryClick = { categoryId, categoryName, isYearMode, startDate, endDate ->
+          navController.navigate(
+            "${Routes.CATEGORY_REPORT_DETAIL}/$categoryId/$categoryName/$isYearMode/$startDate/$endDate"
+          )
+        }
+      )
+    }
+    
+    composable(
+      route = "${Routes.CATEGORY_REPORT_DETAIL}/{categoryId}/{categoryName}/{isYearMode}/{startDate}/{endDate}",
+      arguments = listOf(
+        navArgument("categoryId") { type = NavType.LongType },
+        navArgument("categoryName") { type = NavType.StringType },
+        navArgument("isYearMode") { type = NavType.BoolType },
+        navArgument("startDate") { type = NavType.StringType },
+        navArgument("endDate") { type = NavType.StringType }
+      )
+    ) { backStackEntry ->
+      val categoryId = backStackEntry.arguments?.getLong("categoryId") ?: 0L
+      val categoryName = backStackEntry.arguments?.getString("categoryName") ?: ""
+      val isYearMode = backStackEntry.arguments?.getBoolean("isYearMode") ?: false
+      val startDate = backStackEntry.arguments?.getString("startDate") ?: ""
+      val endDate = backStackEntry.arguments?.getString("endDate") ?: ""
+      
+      CategoryReportDetailScreen(
+        categoryId = categoryId,
+        categoryName = categoryName,
+        isYearMode = isYearMode,
+        startDate = startDate,
+        endDate = endDate,
+        onNavigateBack = {
+          navController.popBackStack()
+        }
+      )
+    }
+    
+    composable(Routes.SETTINGS) {
+      SettingsScreen(
+        onNavigateBack = {
+          navController.popBackStack()
+        }
+      )
+    }
+    
+    composable(Routes.SEARCH) {
+      SearchScreen(
+        onNavigateBack = {
+          navController.popBackStack()
+        },
+        onTransactionClick = { transactionId ->
+          navController.navigate("${Routes.TRANSACTION_DETAIL_ITEM}/$transactionId")
         }
       )
     }

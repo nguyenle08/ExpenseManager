@@ -1,17 +1,22 @@
 package com.example.expensemanager.feature.main
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.expensemanager.feature.categorymanagement.CategoryManagementScreen
 import com.example.expensemanager.feature.home.HomeScreen
@@ -29,9 +34,14 @@ fun MainScreen(
   onAddCategoryClick: () -> Unit = {},
   onEditCategoryClick: (Long) -> Unit = {},
   onTransactionDetailClick: () -> Unit = {},
-  onTransactionItemClick: (Long) -> Unit = {}
+  onTransactionItemClick: (Long) -> Unit = {},
+  onReportClick: () -> Unit = {},
+  onSettingsClick: () -> Unit = {},
+  onSearchClick: () -> Unit = {}
 ) {
 
+  val context = LocalContext.current
+  
   Scaffold(
     bottomBar = {
       NavigationBar(
@@ -39,14 +49,15 @@ fun MainScreen(
         tonalElevation = 8.dp
       ) {
         bottomNavItems.forEachIndexed { index, item ->
+          val label = com.example.expensemanager.util.LocaleManager.getString(context, item.labelKey)
           NavigationBarItem(
             icon = {
               Icon(
                 imageVector = item.icon,
-                contentDescription = item.label
+                contentDescription = label
               )
             },
-            label = { Text(item.label) },
+            label = { Text(label) },
             selected = selectedTab == index,
             onClick = { onTabSelected(index) },
             colors = NavigationBarItemDefaults.colors(
@@ -66,51 +77,51 @@ fun MainScreen(
         0 -> HomeScreen(
           onAddTransactionClick = onAddTransactionClick,
           onCategoryManagementClick = { onTabSelected(1) },
-          onTransactionDetailClick = onTransactionDetailClick
+          onTransactionDetailClick = onTransactionDetailClick,
+          onReportClick = onReportClick,
+          onSettingsClick = onSettingsClick,
+          onSearchClick = onSearchClick
         )
         1 -> CategoryManagementScreen(
           onNavigateBack = { onTabSelected(0) },
           onAddCategoryClick = onAddCategoryClick,
           onEditCategoryClick = onEditCategoryClick
         )
-        2 -> TransactionDetailScreen(
+        2 -> {
+          // Trigger add transaction and return to home
+          LaunchedEffect(Unit) {
+            onAddTransactionClick()
+            onTabSelected(0)
+          }
+          // Show home screen while navigating
+          HomeScreen(
+            onAddTransactionClick = onAddTransactionClick,
+            onCategoryManagementClick = { onTabSelected(1) },
+            onTransactionDetailClick = onTransactionDetailClick,
+            onReportClick = onReportClick,
+            onSettingsClick = onSettingsClick
+          )
+        }
+        3 -> TransactionDetailScreen(
           onNavigateBack = { onTabSelected(0) },
           onTransactionClick = onTransactionItemClick
         )
-        3 -> ProfileScreen()
+        4 -> {
+          // Trigger report and return to home
+          LaunchedEffect(Unit) {
+            onReportClick()
+            onTabSelected(0)
+          }
+          // Show home screen while navigating
+          HomeScreen(
+            onAddTransactionClick = onAddTransactionClick,
+            onCategoryManagementClick = { onTabSelected(1) },
+            onTransactionDetailClick = onTransactionDetailClick,
+            onReportClick = onReportClick,
+            onSettingsClick = onSettingsClick
+          )
+        }
       }
-    }
-  }
-}
-
-/**
- * Màn hình Cá nhân (placeholder)
- */
-@Composable
-private fun ProfileScreen() {
-  Box(
-    modifier = Modifier.fillMaxSize(),
-    contentAlignment = androidx.compose.ui.Alignment.Center
-  ) {
-    Column(
-      horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-      verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      Icon(
-        imageVector = Icons.Default.Person,
-        contentDescription = null,
-        modifier = Modifier.size(64.dp),
-        tint = MaterialTheme.colorScheme.primary
-      )
-      Text(
-        text = "Thông tin cá nhân",
-        style = MaterialTheme.typography.titleLarge
-      )
-      Text(
-        text = "Chức năng đang phát triển",
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-      )
     }
   }
 }
@@ -119,13 +130,14 @@ private fun ProfileScreen() {
  * Danh sách các item trong Bottom Navigation
  */
 data class BottomNavItem(
-  val label: String,
+  val labelKey: String,
   val icon: ImageVector
 )
 
 private val bottomNavItems = listOf(
-  BottomNavItem("Trang chủ", Icons.Default.Home),
-  BottomNavItem("Danh mục", Icons.Default.List),
-  BottomNavItem("Sổ giao dịch", Icons.Default.Menu),
-  BottomNavItem("Cá nhân", Icons.Default.Person)
+  BottomNavItem("home", Icons.Default.Home),
+  BottomNavItem("categories", Icons.Default.List),
+  BottomNavItem("add_transaction", Icons.Default.Add),
+  BottomNavItem("transactions", Icons.Default.Menu),
+  BottomNavItem("report", Icons.Default.Info)
 )
